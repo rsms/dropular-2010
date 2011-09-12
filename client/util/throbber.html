@@ -1,0 +1,58 @@
+<script type="text/javascript" charset="utf-8">
+  function Throbber() {
+    this.$html = __html('throbber').hide();
+    this.refcount = 0;
+  }
+  
+  exports.Throbber = Throbber;
+  oui.mixin(Throbber.prototype, {
+    show: function(duration){
+      if (this.timer !== undefined) return;
+      this.$html.fadeIn(typeof duration === 'number' ? duration : 200);
+      var x = 0, self = this;
+      this.timer = setInterval(function(){
+        if (x === -(32*11)) x = 0;
+        else x -= 32;
+        self.$html.css('background-position', x+'px 0');
+      }, 60);
+    },
+
+    hide: function(duration){
+      if (this.timer === undefined) return;
+      clearTimeout(this.timer);
+      this.timer = undefined;
+      this.$html.fadeOut(typeof duration === 'number' ? duration : 200);
+    },
+
+    // short-hand to remove this.$html and hide()
+    remove: function(){
+      this.hide();
+      this.$html.remove();
+    },
+  
+    incr: function() {
+      if ((++this.refcount) === 1)
+        this.show();
+    },
+
+    decr: function() {
+      if ((--this.refcount) === 0)
+        this.hide();
+      else if (this.refcount < 0)
+        this.refcount = 0;
+    }
+  });
+  
+</script>
+<style type="text/css" media="screen">
+  throbber {
+    display:block;
+    margin:0 auto;
+    background:red;
+    display:block;
+    width:32px; height:32px;
+    background: url('res/throbber-32.png') no-repeat scroll 0 0;
+  }
+</style>
+
+<throbber></throbber>

@@ -1,0 +1,15 @@
+{
+   "_id": "_design/tags",
+   "language": "javascript",
+   "views": {
+       "all": {
+           "options": {"collation": "raw"},
+           "map": "function(doc) {\n  if (doc.disabled || typeof doc.tags !== 'object' || !doc.tags.forEach) return;\n  var modified = 0; // find highest timestamp\n  for (var user in doc.users) {\n    modified = Math.max(modified, doc.users[user][0]);\n  }\n  if (modified === 0) return; // no users\n  var RE = /^[\\w\\d_-]+$/;\n  doc.tags.forEach(function(tag) {\n    if (doc && tag.match(RE))\n      emit([tag.toLowerCase(), modified], null);\n  });\n}\n\n"
+       },
+       "top": {
+           "options": {"collation": "raw"},
+           "map": "function(doc) {\n  if (doc.disabled || typeof doc.tags !== 'object' || !doc.tags.forEach) return;\n  var RE = /^[\\w\\d_-]+$/;\n  doc.tags.forEach(function(tag) {\n    if (doc && tag.match(RE))\n      emit(null, tag.toLowerCase());\n  });\n}\n",
+           "reduce": "function(key, values, rereduce){\n    var hash = {}\n    if (!rereduce){\n        for (var i in values){\n            var tag = values[i]\n            hash[tag] = (hash[tag] || 0) + 1\n        }\n    }else{\n        for (var i in values){\n            var topN = values[i]\n            for (var i in topN){\n                var pair = topN[i]\n                var tag = pair[0]\n                hash[tag] = (hash[tag] || 0) + pair[1]\n            }\n        }\n    }\n    var all = []\n    for (var key in hash)\n        all.push([key, hash[key]])\n    all = all.sort(function(one, other){\n        return other[1] - one[1]\n    })\n    if (all.length > 50) all = all.slice(0, 50);\n    return all;\n}"
+       }
+   }
+}

@@ -1,0 +1,103 @@
+<script type="text/javascript" charset="utf-8">
+
+exports.createView = function(user){
+  var view = __html('content.user-profile');
+  view.find('h1').text(user.real_name || user.username);
+  view.find('p.about').html(user.about || '&nbsp;');
+  if (user.url) {
+    var displayurl = user.url.replace(/^https?:\/\/([^\/]+)\/*$/, '$1');
+    view.find('address a').attr('href', user.url).text(displayurl);
+  } else {
+    view.find('address').html('&nbsp;');
+  }
+  view.find('box.following a').text(user.following ? user.following.length : 0);
+  view.find('img.avatar').attr('src', 'http://www.gravatar.com/avatar.php?gravatar_id='+user.gravatar+'&size=64&default=http://dropular.net/res/no_icon.png');
+  // set username in urls
+  view.find('box:not(.not-yet-implemented) a').each(function(i){
+    this.href = this.href.replace(/:username/, user.username);
+  });
+  view.find('box.not-yet-implemented a').removeAttr('href');
+  return view;
+};
+
+exports.display = function(username, section, callback){
+  var url = 'users/'+oui.urlesc(username);
+  if (typeof params === 'function') {
+    callback = params;
+    params = undefined;
+  } else if (typeof section === 'function') {
+    callback = section;
+    section = undefined;
+  }
+  var present = function(user){
+    var view = exports.createView(user);
+    mainView.setView(view);
+    // section
+    if (section === 'following') {
+      var list = users.listing.build(user.following);
+      view.append(list);
+      if (callback) callback();
+    } else if (section === 'drops') {
+      url = 'users/'+oui.urlesc(username)+'/drops';
+      drops.build(url, {complete:1, limit:18}, function(err, dropsview){
+        if (err) {
+          error.present(err);
+        } else {
+          dropsview.find('sources').remove();
+          dropsview.find('.title').remove();
+          view.append(dropsview);
+        }
+        if (callback) callback(err);
+      });
+    }
+  };
+  // todo: if oui.app.session.user, then do a index.reloadUser instead.
+  users.User.find(username, function(err, user){
+    if (err || !user) {
+      if (!err) err = {title:'User not found'};
+      error.present(err);
+      if (callback) callback(err);
+    } else {
+      present(user);
+    }
+  });
+};
+
+
+oui.app.on('start', function(){
+  oui.anchor.on(/^users\/(<username>[^\/]+)(?:\/(<section>.+)|)$/, function(params, path, prevPath) {
+    console.log('user profile', params.username, params.section);
+    if (params.section !== 'followers' && params.section !== 'following')
+      params.section = null;
+    exports.display(params.username, params.section || 'drops');
+  });
+});
+
+</script>
+<content class="user-profile">
+  <sources>
+    <box class="score not-yet-implemented" title="Not yet implemeted">
+      <h3><a>-</a></h3>
+      <small>Score</small>
+    </box>
+    <box class="followers not-yet-implemented" title="Not yet implemeted">
+      <h3><a href="#users/:username/followers">-</a></h3>
+      <small>Followers</small>
+    </box>
+    <box class="following">
+      <h3><a href="#users/:username/following">-</a></h3>
+      <small>Following</small>
+    </box>
+    <box class="dropcount">
+      <h3><a href="#users/:username">-</a></h3>
+      <small>Total Drops</small>
+    </box>
+  </sources>
+  <header>
+    <img class="avatar" src="">
+    <h1>User Name</h1>
+    <p class="about">About user</p>
+    <address><a href="http://foo.bar/">foo.bar</a></address>
+  </header>
+</content>
+<div class="clear"></div>

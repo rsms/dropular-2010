@@ -1,0 +1,57 @@
+@import "../_base.less";
+
+modal {
+  display: none; position: absolute; .min-size(300px, 400px);
+  .base-font; font-size: 14px; color: #bbb;
+  background-color: rgb(70,70,70); background-color: rgba(30,30,30,0.8);
+  .border-radius(16px);
+  .box-shadow(0, 4px, 14px, #888);
+  padding: 20px;
+  text-shadow: #000 0 1px 0;
+  text-align: center;
+  z-index: 91;
+  li { list-style: none; }
+  h2, h3 { font-size: 22px; color: #eee; margin-bottom: 10px; }
+  h3 { font-size: 16px; margin-top: 10px; }
+  .details {
+    text-align: left;
+    background-color: rgb(100,100,100); background-color: rgba(100,100,100,0.8);
+    .border-radius(8px);
+    margin-top: 10px;
+    padding: 10px;
+    text-shadow: #444 0 -1px 0;
+    li {
+      white-space: pre-wrap;
+      color: #ddd;
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px solid #444;
+      border-top-color: rgba(0,0,0,0.2);
+      > strong {
+        color: #fff;
+      }
+    }
+  }
+  input {
+    /*float: right*/
+    margin-top: 10px;
+    padding: 6px 12px;
+    background-color: #ccc;
+    border: none;
+    height: 25px;
+    .border-radius(25px);
+    text-shadow: #eee 0 1px 0;
+    .base-font; font-size: 13px; font-weight: bold; line-height: 13px;
+    color: #222;
+  }
+  input:hover { background-color: #fff; }
+}
+
+modal-overlay {
+  display: none;
+  position: absolute;
+  position: fixed; // trick!
+  background-color: #fff;
+  .opacity(0.8);
+  z-index: 90;
+}

@@ -1,0 +1,210 @@
+<script type="text/javascript" charset="utf-8">
+//$('grid').css('display','none');
+
+//oui.anchor.on(/^drop\/?$/, function(params){
+oui.anchor.on(/^drop\/(<page>[^\/]+)/, function(params){
+  $('body').css('width','200px');
+  $('body').css('overflow','hidden');
+  $('#main').css('margin','10px');
+  $('textarea').css('display','none');
+  $('grid').css('width','200px');
+  $('header').empty();
+  $('header').css('height','0px');
+  $('content').empty();
+  var view = __html('div:first');
+  mainView.setView(view);
+});
+
+// Read a page's GET URL variables and return them as an associative array.
+var vars = [], hash;
+var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+for(var i = 0; i < hashes.length; i++) {
+  hash = hashes[i].split('=');
+  vars.push(hash[0]);
+  vars[hash[0]] = decodeURIComponent(hash[1]);
+}
+
+
+exports.setupForm = function($view) {
+  // save original label on the submit button
+  var $form = $view.find('form'),
+      origSubmitLabel = $form.find('input[type=submit]').get(0).value;
+  // prevent default actions
+  $form.bind('submit', function(ev){ ev.preventDefault(); });
+  var loadFields = function(){
+    var fields = {};
+    // load fields
+    $form.find('input, textarea').each(function(){
+      var q = $(this), k = q.attr('name');
+      if (k && k.length) fields[k] = {q:q, value:this.value};
+    });
+    return fields;
+  };
+  var activate = function() {
+    // submit action
+    var submit = function(ev){      
+      var msg = {}, v, fields = loadFields();
+      if ($("#tags").val() === 'Tags (comma-separated)')
+        $("#tags").val("");
+      // load fields
+      $form.find('input, textarea').each(function(){
+        var q = $(this), k = q.attr('name');
+        if (k && k.length) fields[k] = {q:q, value:this.value};
+      });
+      // build message
+      var fieldsKeys = ['url', 'title', 'origin', 'desc'];
+      for (var ix=0; ix<fieldsKeys.length; ix++) {
+        var k = fieldsKeys[ix];
+        v = fields[k].value.trim();
+        if (v.length) msg[k] = v;
+      }
+      v = fields.tags.value.trim().split(/[\n\t ,]+/);
+      if (v.length && !(v.length === 1 && v[0] === ''))
+        msg.tags = v;
+      if (fields.nsfw && fields.nsfw.q)
+        msg.nsfw = fields.nsfw.q.get(0).checked;
+      console.log('['+__name+'] submit', msg);
+
+      // change state of inputs
+      $form.find('input').each(function(){ this.disabled = true; });
+      if (fields.submit) fields.submit.q.get(0).value = 'Dropping...';
+
+      // POST
+      if (fields.tags.value !== "Tags (comma-separated)")  {
+
+      oui.app.session.post('drop', msg, function(err, r, res){
+        if (err) {
+          util.notify.show(err);
+          // enable form again, so the user can retry
+          $form.find('input').each(function(){ this.disabled = false; });
+          if (fields.submit) fields.submit.q.get(0).value = origSubmitLabel;
+          activate(); // again
+        } else {
+          if (fields.submit) fields.submit.q.get(0).value = 'Dropped';
+          $form.fadeOut(100, function(){
+            window.close();
+            var $msg = $view.find('div.message.dropped-'+(r.noop ? 'noop' : 'ok'));
+            $msg.find('a.view-drop').attr('href', '#drops/'+oui.urlesc(r.id));
+            $msg.fadeIn(200);
+          });
+        }
+      });
+     }
+     
+    };
+    $form.one('submit', submit);
+    // focus
+
+    /*$('#tags').focus(function() {
+      if ($("#tags").val() === 'Tags (comma-separated)')
+        $("#tags").val("");
+    });*/
+
+    var fields = loadFields();
+
+    if (vars.title) {
+      $('#title').val(unescape(vars.title));
+    } else {
+      var s = vars.origin.match(/\/([^\/]+)$/);
+      if (s) {
+        s = s[1];
+      } else {
+        s = vars.origin;
+      }
+      s = decodeURIComponent(s);
+      s = s.replace(/\.[^\.]{2,4}$/, '');
+      s = s.replace(/[_\-]+/g, ' ');
+      s = s.replace(/ \([0-9]+×[0-9]+\)$/, ''); // chrome image title
+      //  (PNG Image, 600x500 pixels)
+      //s = s.replace(/ \([a-z]+ image, [0-9]+x[0-9]+ +[a-z]+\)$/i, '');
+      if (!s.match(/ /)) s = s.replace(/\.+/g, ' ');
+      $('#title').val(s);
+    }
+
+    $('#origin').val(vars.origin);
+    $('#url').val(vars.url);
+    
+    /*if (fields.url.value === "") fields.url.q.focus();
+    else if (fields.title.value === "") fields.title.q.focus();
+    else if (fields.tags.value === "") fields.tags.q.focus();
+    else fields.desc.q.focus();*/
+    fields.tags.q.focus().get(0).select();
+  };
+  activate();
+};
+
+exports.on('load', function(ev, instance){
+  exports.setupForm(instance);
+});
+
+</script>
+<style type="text/css" media="screen">
+  @import "../_base.less";
+  div.drop {
+    input[type=text] {
+      background:#fff;
+      border: 1px solid #e5e5e5;
+      width: 200px;
+      color:#666;
+      padding:3px 5px;
+      -moz-border-radius:4px;
+      -khtml-border-radius:4px;
+      -webkit-border-radius:4px;
+      font:11px Arial, sans-serif;
+    }
+    div.message {
+      display:none;
+      .border-radius(6px);
+      font-size:28px;
+      font-weight:bold;
+      color:#007bc9;
+      background:#beddf1;
+      text-align: center;
+      padding:80px 0 120px 0;
+    }
+    div.message.dropped-ok {
+      color:#00a828; background:#c6f0d8;
+    }
+    p { margin-bottom: 12px;}
+    // to preview the OK message:
+    //form { display:none; } p.message { display:block; }
+  }
+</style>
+<div>
+  <div class="drop userlevel1">
+    <p><b>Drop image</b></p>
+    <form>
+      <p><input type="text" name="tags" id="tags" value="Tags (comma-separated)" maxlength="250">
+      <label title="Mark as &quot;Not Safe For Work&quot; if the image contains explicit imagery, like naked people or strong symbols"><input type="checkbox" name="nsfw" value="1"> NSFW</label></p>
+      <hr>
+      <textarea name="desc"></textarea>
+      <input type="hidden" name="url" id="url" maxlength="1250">
+      <input type="hidden" name="title" id="title" maxlength="250">
+      <input type="hidden" name="origin" id="origin" maxlength="1250">
+      
+      <p><input type="submit" value="Drop"></p>
+    </form>
+    <div class="message dropped-ok">
+      <h2>Dropped</h2>
+      <p><a class="view-drop">Go to the drop</a></p>
+    </div>
+    <div class="message dropped-noop">
+      <h2>Thanks, but you've already dropped this</h2>
+      <p><a class="view-drop">Go to the drop</a></p>
+    </div>
+  </div>
+
+  <div class="not-logged-in userlevel-none">
+    <h1>Not logged in</h1>
+    <p>
+      You need to log in to drop something.
+    </p>
+  </div>
+
+  <div class="not-logged-in userlevel-eq-2">
+    <h1>Sorry</h1>
+    <p>
+      You can not create drops. Dropping is by invitation only.
+    </p>
+  </div>
+</div>

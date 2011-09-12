@@ -1,0 +1,42 @@
+@toolboxWidth: 184px;
+@baseColor: #666;
+@baseFontSize: 11px;
+@titleColor: #1a1a1a;
+@linkColor: #3797d4;
+@pageWidth: 911px;
+
+@headerItemsTopMargin: 32px;
+
+.base-font { font-family: helvetica, arial, sans-serif }
+.small-font { font: 9px arial, verdana, sans-serif }
+.block { display: block; }
+
+// Position and size
+.min-size(@w:0, @h:0) { min-width: @w; min-height: @h; }
+.max-size(@w:0, @h:0) { max-width: @w; max-height: @h; }
+.origin(@x:0, @y:0) { left: @x; top: @y; }
+.size(@w:0, @h:0) { width: @w; height: @h; }
+.rect(@x:0, @y:0, @w:0, @h:0) {
+  position: absolute;
+  .origin(@x, @y); .size(@w, @h);
+}
+
+.border-radius(@r:8px) {
+  border-radius: @r; -webkit-border-radius: @r;
+  -moz-border-radius: @r; -khtml-border-radius: @r;
+}
+
+.box-shadow(@x:0, @y:1, @blur:0, @color:#000) {
+  box-shadow: @x @y @blur @color; -khtml-box-shadow: @x @y @blur @color;
+  -moz-box-shadow: @x @y @blur @color; -webkit-box-shadow: @x @y @blur @color;
+  -o-box-shadow: @x @y @blur @color; -icab-box-shadow: @x @y @blur @color;
+}
+
+.opacity(@level:0.5) {
+  opacity: @level; -moz-opacity: @level;
+  // currently a bug in less.js:
+  //@x: @level * 100;
+  //filter:alpha(opacity=@x);
+}
+
+

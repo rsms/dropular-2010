@@ -1,0 +1,11 @@
+{
+   "_id": "_design/offline",
+   "language": "javascript",
+   "views": {
+       "drop-popularity": {
+           "options": {"collation": "raw"},
+           "map": "function(doc) {\n  if (!doc || !doc._id || doc.disabled \n     || typeof doc.users !== 'object') return;\n  var user, timeAndScore;\n  for (user in doc.users) {\n    timeAndScore = doc.users[user];\n    emit(doc._id, timeAndScore);\n  }\n}",
+           "reduce": "function(keys, values, rereduce) {\n  var i, score = 0;\n  if (!rereduce) {\n    // oldest drop 2009-01-25T10:42:21.000Z\n    var B = 1232883741000;\n    var A = values[0][0];\n\n    var t = A - B;\n    var x = 0;\n    for (i in values)\n      x += values[i][1];\n\n    if (x > 0) y = 1;\n    else if (x == 0) y = 0;\n    else y = -1;\n\n    z = (Math.abs(x) >=1 && Math.abs(x) || 1);\n    score = Math.log(z) + (y*t)/45000;\n  } else {\n    score = values[0];\n    for (i=0; i<values.length; i++) {\n      if (values[i] > score)\n        score = values[i];\n    }\n  }\n\n  return score;\n}"
+       }
+   }
+}

@@ -1,0 +1,26 @@
+<script type="text/javascript" charset="utf-8">
+
+exports.present = function(err, callback){
+  var view = __html('.error');
+  view.find('h1').text(err.title || err.type || err.message || 'An error occured');
+  view.find('.message').text(err.message || '');
+  view.find('.stack').text(err.stack || '');
+  mainView.setView(view);
+};
+
+</script>
+<style type="text/css" media="screen">
+
+code {
+  display:block;
+  font-family: monospace;
+  margin-top:20px;
+  white-space:pre;
+}
+
+</style>
+<content class="error">
+  <h1>An error occured</h1>
+  <p class="message">Message</p>
+  <code class="stack">Message</code>
+</content>

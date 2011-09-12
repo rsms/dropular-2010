@@ -1,0 +1,12 @@
+{
+   "_id": "_design/users",
+   "language": "javascript",
+   "views": {
+       "by-email": {
+           "map": "function(doc) {\n  emit(doc.email.toLowerCase(), null);\n}"
+       },
+       "followers": {
+           "map": "function(doc) {\n  if (!doc.following) return;\n  doc.following.forEach(function(u) {\n    emit(u, null);\n  });\n}"
+       }
+   }
+}

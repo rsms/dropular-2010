@@ -1,0 +1,142 @@
+@import "../_base.less";
+
+@thumbsize: 209px;
+@itemBorderSize: 1px;
+@itemMargin: 25px;
+@itemMargin2: @itemMargin - (@itemBorderSize * 2);
+
+	a.detail-btn {
+		margin-left: 10px;
+		display: inline;
+		cursor: pointer;
+	}
+	
+	a.hide {
+		display: none;
+	}
+
+	a.show {
+		display: inline;
+	}
+
+
+content.drops {
+
+	more {
+		background:#f2f2f2;
+		border: 1px solid #e5e5e5;
+		width: 100%;
+		display: block;
+		text-align: center;
+		color:#666;
+		padding:5px 5px;
+		margin-bottom: 25px;
+		-moz-border-radius:4px;
+		-khtml-border-radius:4px;
+		-webkit-border-radius:4px;
+		font:11px Arial, sans-serif;
+		cursor: pointer;
+	}
+  
+	more:hover {
+		.opacity(0.8);filter:alpha(opacity=80);
+	}
+	
+  sources {
+    display:block;
+    float:right;
+    h3 {
+      display:inline;
+      margin-left:10px;
+      a { color: @titleColor; }
+      a:hover { border-bottom: 1px solid @linkColor; }
+      a.active { color: @linkColor; }
+    }
+  }
+  
+  div.title {
+    display:none;
+  }
+  
+  div.title.tagged {
+    h1 {
+      .tags { background-color:#fffc00; }
+    }
+  }
+  
+  throbber {
+    margin:20px auto;
+  }
+
+  drops {
+    display:block;
+    margin-top: 25px;
+    
+    // counter-margins
+    margin-right: (@itemMargin - (@itemMargin * 2));
+    margin-left: (@itemBorderSize - (@itemBorderSize * 2));
+  
+    drop {
+      display:inline-block;
+      .size(@thumbsize, @thumbsize);
+      margin:0 @itemMargin2 @itemMargin2 0;
+
+      img {
+        vertical-align:middle;
+        display:block;
+        margin:auto;
+        .opacity(0);filter:alpha(opacity=0);
+        .max-size(@thumbsize, @thumbsize);
+      }
+
+      background: url('res/loading-bg.png') no-repeat scroll center center;
+      
+      .info-wrapper {
+      	visibility: hidden;
+      	width: @thumbsize;
+      	position: absolute;
+      	text-align: center;
+      	z-index: 999;
+      	color: #1a1a1a;
+      	margin-top: @thumbsize/2-12;
+
+	      a {
+	      	color: #1a1a1a;
+	      }
+	      .from {
+	      	background: yellow;
+	      	padding: 5px;
+	      	height: 15px;
+	      	white-space:nowrap;
+	      	display: inline;
+	      }
+	      .droppy {
+	      	color: #1a1a1a !important;
+	      	.opacity(1.0);filter:alpha(opacity=100);
+	      	padding: 15px;
+	      	padding-top: 0px;
+	      	width: 15px;
+	      	height: 15px;
+	      	white-space:nowrap;
+	      	display: inline;
+	      	background: url('res/plus.png') no-repeat scroll center center;
+	      	z-index: -1;
+	      	cursor: pointer;
+	      }
+	      .droppy:hover {
+			    .opacity(0.8);filter:alpha(opacity=80);
+			  }
+      }
+    }
+
+    drop.loaded {
+      border-color:transparent;
+      background:none;
+      img { .opacity(1.0);filter:alpha(opacity=100); }
+    }
+    drop.loaded:hover {
+      img { .opacity(0.8);filter:alpha(opacity=80); }
+    }
+  }
+
+}

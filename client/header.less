@@ -1,0 +1,51 @@
+@import "_base.less";
+
+body > grid > header {
+  .block;
+  height: 75px;
+  border-bottom: 10px solid #e1e1e1;
+  background: transparent url(res/logo.png) no-repeat scroll 0 25px;
+
+  // Login  Register, etc
+  .user-info {
+    .block;
+    float: right;
+    margin-top: 32px;
+    margin-top: @headerItemsTopMargin;
+    width: @toolboxWidth;
+
+    a {
+      padding:4px 8px;
+      margin:-4px -8px;
+      .border-radius(8px);
+    }
+    a:hover {
+      color:black;
+      background-color:#ddd;
+      background-color:rgba(0,0,0,0.13);
+    }
+
+    .user {
+      color: #1a1a1a;
+      font-weight: bold
+    }
+
+    .signin {
+      color: #1a1a1a;
+      margin-right: 7px;
+      font-weight: bold;
+    }
+
+    .signout {
+      color: #1a1a1a;
+      margin-left: 7px;
+      font-weight: bold;
+    }
+
+    .register {
+      color: #1a1a1a;
+      font-weight: normal
+    }
+  }
+}
+

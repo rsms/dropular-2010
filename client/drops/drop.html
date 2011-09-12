@@ -1,0 +1,102 @@
+<script type="text/javascript" charset="utf-8">
+
+  oui.app.on('start', function(){
+
+   oui.anchor.on(/^drops\/(<id>[a-zA-Z0-9]{25,30})/, function(params, path, prevPath){
+      console.log('got request for drop with id '+params.id);
+      oui.app.session.get('drops/drop/'+params.id, params, function(err, drop){
+        console.log('drops/drop/'+params.id+' -->', err, drop);
+        if (err) {
+          error.present(err);
+        } else {
+          // TODO clean up this code -- don't do inline HTML as it's unsecure
+          //      and hard to maintain.
+          var view = __html('drop');
+          view.find('h1').text(drop.title || drop.origin);
+          view.find('img').attr('src', drops.dropURLfromId(drop._id, drop.url, 'm', drop.image));
+
+          if (drop.origin) {
+            view.find('.origin').find('a').attr('href',
+              oui.htmlesc(drop.origin)).text(oui.htmlesc(drop.origin.substring(0,50)));
+          } else {
+            view.find('.origin').hide();
+          }
+          
+          view.find('a.del').attr('href', '#about/flag/?'+drop._id);
+				
+          var createdBy, created, user;
+          for (user in drop.users) {
+            var t = drop.users[user][0];
+            if (!created || t < created) {
+              created = t;
+              createdBy = user;
+            }
+          }
+
+          $('.redrop').live('click', function(){
+				    redrop();
+				    $(this).hide();
+          });
+		
+          var redrop = function() {
+			      var msg = { 'url' : drop.url, 'origin' : drop.origin };
+			          oui.app.session.post('drop', msg, function(err, r, res){
+			      });
+          };
+
+          view.find('date.created').text($.relatizeDate.timeAgoInWords(Date.fromUTCTimestamp(created)));
+
+          view.find('.createdBy').html(
+            '<a href="#users/'+oui.urlesc(createdBy)+'" title="'+oui.htmlesc(createdBy)+'">'+
+            oui.htmlesc(createdBy)+'</a>');
+          var users = 'Re-Dropped by ';
+          $.each(drop.users, function(index, value) { 
+            
+						if (oui.app.session.user) {
+				           if (oui.app.session.user.username !== index) {
+				              view.find('.redrop').css('display','inline');
+								    } else {
+				              view.find('.redrop').css('display','none');
+								    }
+						}
+         
+            if (createdBy !== index) {
+              users += '<a href="#users/'+oui.urlesc(index)+'" title="'+oui.htmlesc(index)+'">'+
+                oui.htmlesc(index)+'</a>, ';
+            }
+          });
+          
+          // tags
+          var tags = [];
+          if (drop.tags) $.each(drop.tags, function(index, value) { 
+            tags.push('<a href="#drops/tagged/'+oui.urlesc(value)+'" title="'+oui.htmlesc(value)+'">'+
+              oui.htmlesc(value)+'</a>');
+          });
+          view.find('tags').html(tags.join(' '));
+
+          if (users !== 'Re-Dropped by ') {
+            view.find('.redroppers').html(users.substring(0,users.length-2));
+          }
+
+          mainView.setView(view);
+        }
+      });
+    });
+  });
+</script>
+<drop>
+  <h1></h1>
+  <img>
+  <info>
+    <span class="origin">Pinched from <a></a></span> by <span class="createdBy"></span> on <date class="created"></date>.
+    <span class="redroppers"></span>
+    <tags></tags>
+  </info> 
+  <tools>
+  <a class="redrop detail-btn hide">Drop</a>
+  <a class="del detail-btn">Flag</a>
+    <!--a href="#" class="drop userlevel1">Drop</a>
+    <a href="#" class="del userlevel1">Remove</a-->
+  </tools>
+  <span class="clear"></span>
+</drop>

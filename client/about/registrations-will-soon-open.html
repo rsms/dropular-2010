@@ -1,0 +1,102 @@
+<script type="text/javascript" charset="utf-8">
+exports.on('load', function(ev, instance){
+  // setup the form
+  var $form = instance.find('form'),
+      $email = $form.find('input[name=email]');
+  var submit = function(ev){
+    ev.preventDefault();
+    var msg = {
+      email: $email.get(0).value,
+      type: 'when-regs-open'
+    };
+    if (msg.email === 'you@r.email') {
+      // schedule another
+      $form.one('submit', submit);
+      return;
+    }
+    console.log('submit', this);
+    $form.find('input').each(function(){ this.disabled = true; });
+    oui.app.session.post('etc/email-opt-in', msg, function(err, r, res){
+      $form.find('input').each(function(){ this.disabled = false; });
+      console.log(err, r, res);
+      if (err) {
+        util.notify.show(err);
+        // schedule another
+        $form.one('submit', submit);
+        $email.focus();
+      } else {
+        $email.get(0).value = '';
+        $form.fadeOut(100, function(){
+          instance.find('p.message.'+(res.statusCode === 304 ? 'already-listed' : 'thanks')).fadeIn(200);
+        });
+        // secure form
+        $form.one('submit', function(ev){ ev.preventDefault(); });
+      }
+    });
+  };
+  $form.one('submit', submit);
+  // give email field focus
+  $email.focus();
+});
+</script>
+<style type="text/css" media="screen">
+  @import "../_base.less";
+  div.about.regs-open-soon {
+    p { font-size:14px; margin-bottom:1em; }
+    form {
+      input {
+        display:inline-block;
+      }
+      input {
+        font:18px helvetica, sans-serif;
+        padding:4px;
+      }
+      input[name=email] { width:300px; }
+      input[type=submit] {
+        background:#ccc;
+        color:#222;
+        border:none;
+        .border-radius(20px);
+        padding:4px 15px;
+        margin-left:5px;
+        border:2px solid transparent;
+      }
+      input[type=submit]:hover { background:#bbb; color:black; }
+      input[type=submit]:focus { outline:none; border-color:#333; }
+      input[type=submit]:active { background:#aaa; color:#444; }
+      input[type=submit]:disabled { background:#ddd; color:#aaa; }
+    }
+    p.message {
+      display:none;
+      .border-radius(6px);
+      font-size:28px;
+      font-weight:bold;
+      color:#007bc9;
+      background:#beddf1;
+      text-align: center;
+      padding:10px 0;
+    }
+    p.message.thanks {
+      color:#00a828; background:#c6f0d8;
+    }
+  }
+</style>
+<div class="about regs-open-soon">
+  <h1>Registrations will soon open</h1>
+  <p>Let us know your email and we'll let you know when registrations are open.</p>
+  <p class="message thanks">
+    Thanks! We'll keep in touch.
+  </p>
+  <p class="message already-listed">
+    You're already listed &mdash; speak to you soon.
+  </p>
+  <form>
+    <p>
+      <input type="text" name="email" value="you@r.email">
+      <input type="submit" value="Submit">
+    </p>
+    <p>
+      <small>We promise to keep your email to ourselves.</small>
+    </p>
+  </form>
+</div>

@@ -1,0 +1,7 @@
+{
+   "_id": "_design/replication",
+   "language": "javascript",
+   "filters": {
+     "user-drops": "function(doc, req) { if (!req.query.usernames) return false; if (doc._id === '_design/user-drops') return true; if (doc && !doc.disabled && typeof doc.users === 'object' && req.query.usernames.some(function(username){ return doc.users[username]})) return true;\n return false;\n}"
+   }
+}

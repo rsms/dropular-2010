@@ -1,0 +1,106 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dropular</title>
+    <script type="text/javascript" charset="utf-8">
+      // debug stuff. should be removed when going live
+      OUI_DEBUG = true;
+      //OUI_BACKEND = {host:'localhost', port:8100};
+    </script>
+    <link rel="stylesheet" href="index.css" type="text/css" media="screen" charset="utf-8">
+  </head>
+  <body>
+    <grid>
+      <header>
+        <h1><a href="#"><span>Dropular</span></a></h1>
+        <div class="user-info">Loading...</div>
+      </header>
+      <!-- main view -->
+     
+       <content id="main">
+        <div class="welcome-view">
+          <h1></h1>
+          <img src="res/dear_visitor.jpg">
+          <start>
+            Welcome to Dropular version (3).002.<br>
+            Things are <strong>still being developed</strong> and<br>
+            we <strong>guarantee</strong> that you will stumble<br>
+            upon bugs and errors during your visit.<br>
+            <br>
+            We constantly working on <strong>new<br>
+            features</strong> that can <strong>extend</strong> our service<br>
+            and make Dropular much more<br>convenient
+            and ease to use.<br>
+            <br>
+            For updates,<br>
+            read our <a href="http://dropular.tumblr.com" target="_blank">blog</a> 
+            and add us on <a href="http://twitter.com/dropular/" target="_blank">Twitter</a>.         
+          </start>
+          <badges>
+            <img src="res/register.jpg">
+            <offf><a href="http://offf.ws" target="_blank"><img src="res/offf.jpg"></a></offf>
+          </badges>
+          <dropularinfo>
+          Dropular is a micro-blogging service which makes it possible for members to save and collect their favorite images found from various sources online. Dropular is currently an invite only service and mostly designed for fashion designers, photographers, architects, graphic designers and artists.
+          </dropularinfo>
+          <p>&copy; 09-2010.</p>
+        </div>
+      </content>
+      <!-- right-hand side column -->
+      <content id="toolbox-wrap">
+        <h3>Drops</h3>
+        <ul class="list">
+          <li><a href="#drops">Recent</a></li>
+          <li class="following userlevel2"><a href="#drops/follow">Following</a></li>
+          <li><a href="#drops/interesting">Interesting</a></li>
+        </ul>
+        <content id="toolbox">
+        </content>
+        <div class="lookup">
+        <h3>Explore</h3>
+        	<form id="taglookup">
+				<p><input class="formbox" type="text" value="tag"></p>
+			</form>
+        </div>
+        <div class="about">
+          <h3>Dropular</h3>
+          <ul class="list">
+            <li><a href="#about/about">About</a></li>
+            <li><a href="#about/todo">Future features</a></li>
+            <li><a href="http://dropular.tumblr.com/">Blog</a></li>
+            <li><a href="mailto:dropular@gmail.com">Contact</a></li>
+            <li><a href="http://twitter.com/dropular">Twitter</a></li>
+          </ul>
+          <disclaimer>
+          <ul class="list">
+            <li><a href="#about/privacy">Privacy</a></li>
+            <li><a href="#about/terms">Terms</a></li>
+          </ul>
+          <small>&copy; 2010</small>
+         </disclaimer>
+        </div>
+      </content>
+    </grid>
+    <script type="text/javascript" src="oui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="index.js" charset="utf-8"></script>
+    <script type="text/javascript" charset="utf-8">
+      oui.backend.defaultPath = '/api';
+      oui.backend.backends = [{host:'dropular.net', port:80}];
+      oui.app.main().on('start', function(){console.log('app started', this);});
+    </script>
+    <!-- TODO FIXME defer loading of these bastards, as they halt the whole site until fully loaded -->
+    <script type="text/javascript" src="http://include.reinvigorate.net/re_.js"></script>
+    <script type="text/javascript">re_("22n05-vj92a4j0ov");</script>
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+  document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+  <script type="text/javascript">
+    try {
+      var pageTracker = _gat._getTracker("UA-15917040-1");
+      pageTracker._trackPageview();
+    } catch(err) {}
+  </script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+[submodule "node.dbslayer.js"]
+	path = node.dbslayer.js
+	url = git://github.com/Guille/node.dbslayer.js.git
+[submodule "oui"]
+	path = oui
+	url = git://github.com/rsms/oui.git

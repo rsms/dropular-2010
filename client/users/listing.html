@@ -1,0 +1,33 @@
+<script type="text/javascript" charset="utf-8">
+  exports.build = function(usernames) {
+    var i, username, item,
+        view = __html('div'),
+        list = view.find('ul').empty();
+    for (i=0; (username = usernames[i]); ++i) {
+      item = __html('li');
+      item.find('a.username')
+        .attr('href', '#users/'+oui.urlesc(username))
+        .text(oui.htmlesc(username));
+      list.append(item);
+    }
+    return view;
+  };
+</script>
+<style type="text/css" media="screen">
+  div.user-listing {
+    clear:both;
+    ul {
+      margin-top:25px;
+      margin-left:64px + 25px;
+      list-style:none;
+      li {
+        font-size:18px;
+      }
+    }
+  }
+</style>
+<div class="user-listing">
+  <ul>
+    <li><a class="username"></a></li>
+  </ul>
+</div>

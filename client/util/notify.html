@@ -1,0 +1,74 @@
+<script type="text/javascript" charset="utf-8">
+
+exports.show = function(html, timeout, callback) {
+  if (typeof timeout === 'function') { callback = timeout; timeout = null; }
+  var view = __html('div.notification').hide();
+  var hide = function(){
+    view.slideUp(100, function(){ view.remove(); });
+    if (callback) callback();
+  };
+  
+  if (typeof html === 'object') {
+    var obj = html;
+    html = '';
+    if (obj.title)
+      html = '<strong>'+oui.htmlesc(obj.title)+'</strong> ';
+    if (obj.message)
+      html += oui.htmlesc(obj.message);
+    if (html === '')
+      html = String(obj);
+  }
+  
+  view.find('p.message').empty().html(html);
+  if (typeof timeout !== 'number') {
+    var close = __html('a.close');
+    close.click(hide);
+    view.find('p.message').prepend(close);
+  } else {
+    setTimeout(hide, timeout);
+  }
+  $('body').prepend(view);
+  view.slideDown(200);
+};
+
+</script>
+<style type="text/css" media="screen">
+  @import "../_base.less";
+  div.notification {
+    background:yellow;
+    padding:20px;
+    min-height:30px;
+    div.wrapper {
+      width: @pageWidth;
+      margin: 0 auto;
+      p {
+        font-size:20px;
+        line-height:30px;
+        color:black;
+      }
+    }
+    a.close {
+      .block;
+      .size(26px, 26px);
+      margin-left:20px;
+      background: url('res/close.png') no-repeat scroll top left;
+      .opacity(0.6); filter:alpha(opacity=60);
+      float:right;
+    }
+    a.close:hover {
+      .opacity(1); filter:alpha(opacity=100);
+    }
+  }
+</style>
+<a class="close"></a>
+<div class="notification">
+  <div class="wrapper">
+    <p class="message">hej</p>
+  </div>
+</div>
+<div class="messages">
+  <p class="legacy-welcome">
+    <b>Welcome back!</b> We are now transferring your old account to the new Dropular.<br>
+    <em>Please allow a few minutes of processing.</em>
+  </p>
+</div>

@@ -1,0 +1,213 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          dropular-httpd
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Dropular HTTP server
+# Description:       Dropular HTTP server
+### END INIT INFO
+
+# Author: Rasmus Andersson <rasmus@notion.se>
+# Do NOT "set -e"
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+NAME=dropular-httpd
+DESC="Dropular HTTP server"
+RUNDIR=/var/run/dropular
+LOGDIR=/var/log/dropular
+SCRIPTNAME=/etc/init.d/$NAME
+USER=dropular
+GROUP=dropular
+
+# Default configuration for dropular-httpd
+DR_HTTPD_BIN=/var/dropular/dropular/httpd.js
+# Start one instance per port
+#DR_HTTPD_PORTS="8100 8101 8102 8103"
+DR_HTTPD_PORTS=8100
+#DR_HTTPD_ARGS='--debug'
+# How long to sleep in between instance restarts
+DR_HTTPD_RESTART_SLEEP=1
+
+# Daemon supervisor config
+SUPERVISOR=/usr/bin/daemon
+SUPERVISOR_ARGS="--respawn --chdir=$(dirname $DR_HTTPD_BIN)" # do NOT set --user here
+SUPERVISOR_PIDDIR="$RUNDIR"
+
+# Exit if the package is not available
+test -f "$DR_HTTPD_BIN" || exit 0
+
+# Read configuration variable file if it is present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# The following are for internal use
+DR_HTTPD_NPORTS=$(echo $DR_HTTPD_PORTS | wc -w)
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+# Make sure run and log directories exist
+mkdir -p $RUNDIR > /dev/null 2> /dev/null
+chown -R $USER:$GROUP $RUNDIR
+chmod 0750 $RUNDIR
+mkdir -p $LOGDIR > /dev/null 2> /dev/null
+chown -R $USER:$GROUP $LOGDIR
+chmod 0750 $LOGDIR
+
+VERBOSE=yes
+
+# start_instance PORT
+start_instance() {
+  DR_HTTPD_PORT=$1
+  INSTANCE_ID="$NAME-$DR_HTTPD_PORT"
+  PIDFILE="$SUPERVISOR_PIDDIR/$INSTANCE_ID.pid"
+  [ "$VERBOSE" != no ] && log_daemon_msg "  starting $INSTANCE_ID"
+  start-stop-daemon --start --quiet --pidfile $PIDFILE \
+                    --exec $SUPERVISOR --test > /dev/null
+  STATUS="$?"
+  if [ "$STATUS" = "0" ]; then
+    start-stop-daemon --start --quiet --pidfile $PIDFILE \
+                      --exec $SUPERVISOR --chuid $USER:$GROUP -- \
+                      $SUPERVISOR_ARGS \
+                      --name=$INSTANCE_ID --pidfile=$PIDFILE \
+                      --stdout=$LOGDIR/$INSTANCE_ID.out \
+                      --errlog=$LOGDIR/$INSTANCE_ID.err \
+                      -- "$DR_HTTPD_BIN" $DR_HTTPD_ARGS --port $DR_HTTPD_PORT
+    STATUS="$?"
+  else
+    STATUS=2
+  fi
+  case "$STATUS" in
+    0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+    2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+  esac
+  return $STATUS
+}
+
+# stop_instance PORT
+stop_instance() {
+  DR_HTTPD_PORT=$1
+  INSTANCE_ID="$NAME-$DR_HTTPD_PORT"
+  PIDFILE="$SUPERVISOR_PIDDIR/$INSTANCE_ID.pid"
+  [ "$VERBOSE" != no ] && log_daemon_msg "  stopping $INSTANCE_ID"
+  start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
+  STATUS="$?"
+  case "$STATUS" in
+    0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+    2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+  esac
+  if [ "$STATUS" != "2" ]; then
+    rm -f $PIDFILE
+  fi
+  return $STATUS
+}
+
+# signal_instance PORT SIGNAL
+signal_instance() {
+  DR_HTTPD_PORT=$1
+  SIGNAL=$2
+  INSTANCE_ID="$NAME-$DR_HTTPD_PORT"
+  PIDFILE="$SUPERVISOR_PIDDIR/$INSTANCE_ID.pid"
+  [ "$VERBOSE" != no ] && log_daemon_msg "  sending signal $SIGNAL to $INSTANCE_ID"
+  kill -s $SIGNAL $(cat $PIDFILE)
+  case "$?" in
+    0) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+    *) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+  esac
+  return $?
+}
+
+do_start() {
+  # Return
+  #   0 if daemon has been started
+  #   1 if daemon was already running
+  #   2 if daemon could not be started
+  for DR_HTTPD_PORT in $DR_HTTPD_PORTS; do
+    start_instance $DR_HTTPD_PORT
+  done
+  return 0
+}
+
+do_stop() {
+  # Return
+  #   0 if daemon has been stopped
+  #   1 if daemon was already stopped
+  #   2 if daemon could not be stopped
+  #   other if a failure occurred
+  RETVAL="0"
+  for DR_HTTPD_PORT in $DR_HTTPD_PORTS; do
+    stop_instance $DR_HTTPD_PORT
+    if [ "$?" = "2" ] ; then RETVAL="2" ; fi
+  done
+  return "$RETVAL"
+}
+
+do_restart() {
+  NPORT=0
+  for DR_HTTPD_PORT in $DR_HTTPD_PORTS; do
+    NPORT=$(expr $NPORT + 1)
+    stop_instance $DR_HTTPD_PORT
+    start_instance $DR_HTTPD_PORT
+    [ "$?" = 2 ] && return 2
+    if [ $DR_HTTPD_RESTART_SLEEP -gt 0 ] && [ $NPORT -lt $DR_HTTPD_NPORTS ]; then
+      [ "$VERBOSE" != no ] && log_action_msg "  waiting $DR_HTTPD_RESTART_SLEEP second(s) until restarting next instance..."
+      sleep $DR_HTTPD_RESTART_SLEEP
+    fi
+  done
+  return 0
+}
+
+do_reload() {
+  for DR_HTTPD_PORT in $DR_HTTPD_PORTS; do
+    signal_instance $DR_HTTPD_PORT 1
+    [ "$?" = 2 ] && return 2
+  done
+  return 0
+}
+
+case "$1" in
+  start)
+    [ "$VERBOSE" != no ] && log_action_msg "Starting $DESC"
+    do_start
+    case "$?" in
+      0|1) [ "$VERBOSE" != no ] && log_action_msg "Started $DR_HTTPD_NPORTS instances" ;;
+      2) [ "$VERBOSE" != no ] && log_action_msg "Failed to start all $DR_HTTPD_NPORTS instances" ;;
+    esac
+    ;;
+  stop)
+    [ "$VERBOSE" != no ] && log_action_msg "Stopping $DESC"
+    do_stop
+    case "$?" in
+      0|1) [ "$VERBOSE" != no ] && log_action_msg "Stopped $DR_HTTPD_NPORTS instances" ;;
+      2) [ "$VERBOSE" != no ] && log_action_msg "Failed to stop all $DR_HTTPD_NPORTS instances" ;;
+    esac
+    ;;
+  restart|force-reload)
+    [ "$VERBOSE" != no ] && log_action_msg "Restarting $DESC"
+    do_restart
+    case "$?" in
+      0|1) [ "$VERBOSE" != no ] && log_action_msg "Restarted $DR_HTTPD_NPORTS instances" ;;
+      2) [ "$VERBOSE" != no ] && log_action_msg "Failed to restart all $DR_HTTPD_NPORTS instances" ;;
+    esac
+    ;;
+  reload)
+    [ "$VERBOSE" != no ] && log_action_msg "Reloading $DESC"
+    do_reload
+    case "$?" in
+      0|1) [ "$VERBOSE" != no ] && log_action_msg "Reloaded $DR_HTTPD_NPORTS instances" ;;
+      2) [ "$VERBOSE" != no ] && log_action_msg "Failed to reload all $DR_HTTPD_NPORTS instances" ;;
+    esac
+    ;;
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
+    exit 3
+    ;;
+esac
+
+:

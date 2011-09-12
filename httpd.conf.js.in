@@ -1,0 +1,4 @@
+//exports.debug = true
+//exports.port = 8800
+//exports.quiet = true
+//exports.addr = '127.0.0.1'

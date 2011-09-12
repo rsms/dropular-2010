@@ -1,0 +1,62 @@
+@import "../_base.less";
+
+#toolbox {
+  div.subscriptions {
+    margin-bottom:20px;
+    //display:none; // since it's untangled and not used as a template
+    li {
+      list-style: none;
+     .active { color: #1a1a1a; font-weight: bold; }
+     a {
+        color: @baseColor;
+        // todo: some kind of :hover feedback so users understand they can clicketyclick?
+      }
+     .active { color: #1a1a1a; font-weight: bold; }
+      span.unseen-count {
+        color: #3797D4;
+        margin-left: 5px;
+        .small-font;
+        font-weight: bold;
+      }
+    }
+    a.add {
+      display:block;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      .size(14px, 14px);
+      background: transparent url(res/plus.png) no-repeat scroll 0 0;
+      .opacity(1);filter:alpha(opacity=100);
+      cursor:default;
+      span { display:none; }
+    }
+    a.add:hover { .opacity(0.7);filter:alpha(opacity=70); }
+    form.add {
+		.formbox {
+		 	background:#fff;
+		 	border: 1px solid #e5e5e5;
+		 	width: 100px;
+		 	color:#666;
+		 	padding:3px 5px;
+		 	-moz-border-radius:4px;
+		 	-khtml-border-radius:4px;
+		 	-webkit-border-radius:4px;
+		 	font:11px Arial, sans-serif;
+		}
+      p {
+        margin-top:0;
+        margin-bottom: 1em;
+      }
+    }
+  }
+}
+/* HTML look like this:
+<div class="subscriptions">
+  <h3>Subscriptions</h3>
+  <ul>
+    <li><a href="#tags/sci-fi">sci-fi</a></li>
+    <li><a href="#tags/space">space<span class="unseen-count">29</span></a></li>
+    <li><a href="#tags/stars">stars</a></li>
+  </ul>
+  <a class="add"><span>&#x2A01;</span></a>
+</div>
+*/

@@ -1,0 +1,27 @@
+<script type="text/javascript" charset="utf-8">
+// show loading animation when a main view switch takes more than N time
+oui.anchor.events.addListener('change', function(ev, path, prevPath, routes){
+  console.log('anchor-change', path, routes);
+  if (routes && routes.length) {
+    // we are waiting for routes to present something
+    var timer = setTimeout(function(){
+      mainView.setView(__html('div.loading-main-view'));
+    }, 200);
+    mainView.events.one('viewchange', function(){
+      clearTimeout(timer);
+    });
+  } else {
+    // no routes means 404
+    error.present({title:'Not found', message:'Nothing found at '+path});
+  }
+});
+</script>
+<style type="text/css" media="screen">
+  div.loading-main-view {
+    background: url('res/loading-view.gif') no-repeat scroll center 200px;
+    width: 100%;
+    height: 246px;
+  }
+</style>
+<div class="loading-main-view">
+<div>

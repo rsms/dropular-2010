@@ -1,0 +1,48 @@
+@import "../_base.less";
+
+content.user-profile {
+
+  sources {
+    display:block;
+    float:right;
+    width: 250px;
+  }
+
+  box {
+   float: right;
+   margin-left: 15px;
+   h3 {
+      text-align: right;
+      display: block;
+      margin: 0; padding: 0;
+      a { color: @titleColor; }
+      a:hover { border-bottom: 1px solid @linkColor; }
+      a.active { color: @linkColor; }
+    }
+    small { text-align: right; display: block; font-size: 9px; }
+  }
+
+  box.not-yet-implemented {
+    a, small { color:#aaa; cursor:default; }
+    a:hover { border:none; }
+  }
+
+  header {
+    .about { width: 450px; }
+
+    h1 { margin: 0; padding: 0; } 
+
+    img.avatar {
+      .size(64px, 64px);
+      margin-top: 3px;
+      float: left;
+      margin-right:25px;
+    }
+  }
+
+  .clear {
+    display: block;
+    clear: both;
+    margin-bottom: 25px;
+  }
+}

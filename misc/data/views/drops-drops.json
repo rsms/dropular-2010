@@ -1,0 +1,18 @@
+{
+   "_id": "_design/drops",
+   "language": "javascript",
+   "views": {
+       "by-username-and-time": {
+           "options": {"collation": "raw"},
+           "map": "function(doc) {\n  if (!doc.users || doc.disabled) return;\n  for (var user in doc.users) {\n    emit([user.toLowerCase(), doc.users[user][0]], null);\n  }\n}\n"
+       },
+       "recently-created": {
+           "options": {"collation": "raw"},
+           "map": "function(doc) {\n  if (!doc.users || doc.disabled) return;\n  var created; // find lowest timestamp\n  for (var user in doc.users) {\n    var t = doc.users[user][0];\n    created = created ? min(created, t) : t;\n  }\n  emit(created, null);\n}"
+       },
+       "popular": {
+           "options": {"collation": "raw"},
+           "map": "function(doc) {\n  if (!doc.users || doc.disabled) return;\n  // oldest drop 2009-01-25T10:42:21.000Z\n  var refTime = 1232883741000,\n      nowDate = new Date(),\n      timeDecayEffect = 0.999,\n      loneDropPunishment = 4.0, // higher = lower score\n      decayBase = 60*60*1000, // 1 hour\n      nowTime = nowDate.getTime()+(nowDate.getTimezoneOffset()*60*1000);\n\n  function applyTimeDecay(score, time, effect) {\n    if (effect === 0) return score;\n    var decay, nscore = score, delta = nowTime-time;\n    if (delta > decayBase) {\n      decay = delta/decayBase;\n      nscore /= decay;\n      //puts('score2: '+score+', D: '+delta+', decay: '+decay)\n    } else if (delta > 1000) {\n      decay = delta/decayBase;\n      nscore /= 1.0+decay;\n      //puts('score2: '+score+', D: '+delta+', decay: '+decay)\n    } else {\n      //puts('score2: '+score+', D: '+delta+', decay: -')\n    }\n    if (effect === 1.0)\n      return nscore;\n    return score + ((nscore - score) * effect);\n  }\n\n  function calculateDropScore(doc) {\n    var user, timeCreated,\n        userdrops = [],\n        endscoreDivisor = 45000;\n    // first, remap userdrops to ordered list\n    for (user in doc.users) {\n      tuple = doc.users[user];\n      userdrops.push({username:user, time:tuple[0], score:tuple[1]});\n    }\n  \n    // special case for empty or single drops\n    if (userdrops.length === 0) {\n      return 0.0;\n    } else {\n      userdrops.sort(function(a, b){ return b.time - a.time; });\n      timeCreated = userdrops[0].time;\n      if (userdrops.length === 1) {\n        score = (timeCreated - refTime)/(endscoreDivisor*loneDropPunishment);\n        score = applyTimeDecay(score, timeCreated, timeDecayEffect);\n        return score / (loneDropPunishment/2);\n      }\n    }\n  \n    var t, x, y, i, td, score = 0,\n        tdpowerPunish = 1.5, tdpowerPraise = 1000*30;\n\n    t = timeCreated - refTime;\n    d = nowTime - timeCreated;\n    x = 0;\n    td = 0;\n  \n    //puts(d+', '+(t/d) + ', '+ (d/t));\n    t *= t/d;\n  \n    for (i in userdrops) {\n      x += userdrops[i].score;\n      if (i > 0)\n        td = userdrops[i].time - userdrops[i-1].time;\n      //sys.error('td '+td)\n      if (td > 0) {\n        if (td < userdrops.length) {\n          // punish sequential drops\n          t /= td*tdpowerPunish;\n        } else {\n          // praise\n          t += td*tdpowerPraise;\n        }\n      }\n    }\n\n    if (x > 0) y = 1;\n    else if (x === 0) y = 0;\n    else y = -1;\n  \n    if (userdrops.length === 1) {\n      t *= 0.5; // demote new drops to 50%\n    } else if (userdrops.length) {\n      t *= userdrops.length;\n    }\n\n    z = (Math.abs(x) >=1 && Math.abs(x) || 1);\n    score = Math.log(z) + (y*t)/endscoreDivisor;\n  \n    score = applyTimeDecay(score, timeCreated, timeDecayEffect);\n  \n    return score;\n  }\n  var sc = calculateDropScore(doc);\n  emit(sc, null);\n  emit(doc._id, sc);\n}"
+       }
+   }
+}
